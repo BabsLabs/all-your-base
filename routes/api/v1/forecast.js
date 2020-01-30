@@ -10,17 +10,14 @@ const database = require('knex')(configuration);
 const fetch = require('node-fetch');
 
 router.get('/', (request, response) => {
-  if (request.body.api_key) {
+  if ((request.body.api_key) && (request.query.location)){
 
-  database('users').where('api_key', request.body.api_key).first()
-    .then((user) => {
-      if (user) {
+    database('users').where('api_key', request.body.api_key).first()
+      .then((user) => {
 
-        // ADD THE GOOGLE SERVICE HELPER METHOD HERE
-
-
-        // REMOVE THIS CODE WHEN THE SERVICE METHODS ARE WORKING
-        console.log(request.query.location);
+        if (user) {
+        // CHANGE THE BELOW FUNCTIONS TO HELPER FUNCTIONS IF REFACTORING
+        // START OF THE GOOGLE API SERVICE FUNCTION
         const location  = request.query.location;
         const googleApiKey = process.env.GOOGLE_API_KEY;
 
@@ -32,8 +29,6 @@ router.get('/', (request, response) => {
         .then((json) => {
           const googleGeocodeResponse = json;
           const latAndLng = Object.values(googleGeocodeResponse.results[0].geometry.location);
-          console.log(`the lat and long of the searched for location are ${latAndLng}`);
-          // RETURN THE LAT AND LONG DATA
 
           // START OF DARKSKY API FETCHING
           const latAndLngFromGoogle = latAndLng;
@@ -44,6 +39,8 @@ router.get('/', (request, response) => {
                return response.json();
             })
             .then((json) => {
+
+              //
 
               // CURRENT WEATHER INFO
               let currentWeather = json.currently;
@@ -61,6 +58,7 @@ router.get('/', (request, response) => {
               let hourlyWeatherSumamry = json.hourly.summary;
               let hourlyWeatherIcon = json.hourly.icon;
               let eightHourForecast = hourlyWeather.data.slice(0, 8);
+              // CLEAN UP THE EIGHT HOUR FORECAST INFO
               eightHourForecast.forEach((day, index) => {
                 delete day.precipType;
                 delete day.precipAccumulation;
@@ -76,7 +74,7 @@ router.get('/', (request, response) => {
               let dailyWeatherSumamry = json.daily.summary;
               let dailyWeatherIcon = json.daily.icon;
               let sevenDayForecast = dailyWeather.data.slice(0, 7);
-
+              // CLEAN UP THE SEVEN DAY FORECAST WEATHER INFO
               sevenDayForecast.forEach((day, index) => {
                 delete day.moonPhase;
                 delete day.precipAccumulation;
@@ -103,39 +101,17 @@ router.get('/', (request, response) => {
               response.status(200).json({currently: currentWeather, hourly: {summary: hourlyWeatherSumamry, icon: hourlyWeatherIcon, data: eightHourForecast}, daily: {summary: dailyWeatherSumamry, icon: dailyWeatherIcon, data: sevenDayForecast}});
             });
           // END OF DARSKY API FETCHING
-
         });
-        // END OF getLatAndLng HELPER METHOD
 
       } else {
         response.status(401).json({error: 'Unauthorized!'});
       }
     }).catch(error => console.log(error));
-  } else {
+  } else if ((!request.body.api_key) && (request.query.location)) {
     response.status(400).json({error: 'Bad Request! Did you send in an Api Key?'});
+  } else if ((request.body.api_key) && (!request.query.location)) {
+    response.status(400).json({error: 'Bad Request! Did you send in a location?'});
   }
 });
-
-// function getLatAndLng(request) {
-//   console.log(request.query.location);
-//   let location  = request.query.location;
-//   let googleApiKey = process.env.GOOGLE_API_KEY;
-//
-//   let url =`https://maps.googleapis.com/maps/api/geocode/json?address=${location}&key=${googleApiKey}`;
-//   fetch(url, { method: 'GET'})
-//     .then((response) => {
-//        return response.json();
-//   })
-//   .then((json) => {
-//     let googleGeocodeResponse = json;
-//     let latAndLng = Object.values(googleGeocodeResponse.results[0].geometry.location);
-//     console.log(`the lat and long of the searched for location are ${latAndLng}`);
-//     return latAndLng;
-//   })
-//   .catch((error) => {
-//      response.status(500).json({ error });
-//    });
-// }
-
 
 module.exports = router;
