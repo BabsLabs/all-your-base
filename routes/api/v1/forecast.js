@@ -28,10 +28,11 @@ router.get('/', (request, response) => {
         })
         .then((json) => {
           const googleGeocodeResponse = json;
-          const latAndLng = Object.values(googleGeocodeResponse.results[0].geometry.location);
+          const latAndLng = googleGeocodeResponse.results[0].geometry.location;
+          const joinedLatAndLng = `${latAndLng.lat},${latAndLng.lng}`;
 
           // START OF DARKSKY API FETCHING
-          const latAndLngFromGoogle = latAndLng;
+          const latAndLngFromGoogle = joinedLatAndLng;
           const darkSkyApiKey = process.env.DARKSKY_API_KEY;
           const darkSkyUrl = `https://api.darksky.net/forecast/${darkSkyApiKey}/${latAndLngFromGoogle}?exclude=minutely,flags&units=us`;
           fetch(darkSkyUrl, { method: 'GET'})
@@ -106,7 +107,9 @@ router.get('/', (request, response) => {
       } else {
         response.status(401).json({error: 'Unauthorized!'});
       }
-    }).catch(error => console.log(error));
+    }).catch((error) => {
+      response.status(500).json({error: error});
+    });
   } else if ((!request.body.api_key) && (request.query.location)) {
     response.status(400).json({error: 'Bad Request! Did you send in an Api Key?'});
   } else if ((request.body.api_key) && (!request.query.location)) {
