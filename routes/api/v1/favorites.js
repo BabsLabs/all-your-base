@@ -84,18 +84,14 @@ router.get('/', (request, response) => {
 
                 const results = favoriteLocations.map( async (location) => {
                     const forecastResults = await getForecasts(location, await getLatAndLongFromGoogle(location.location));
-                    // console.log(forecastResults);
-                    // response.status(200).send(forecastResults); // sends a single forecast
                     return forecastResults;
-              });
-
-
-              Promise.all(results)
-                .then(data => {
-                  console.log(data);
-                  response.status(200).json(data);
                 });
 
+                Promise.all(results)
+                  .then(data => {
+                    console.log(data);
+                    response.status(200).json(data);
+                  });
 
           } else {
                 response.status(200).json({ message: 'No favorites found.' });
