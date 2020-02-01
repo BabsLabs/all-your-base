@@ -24,12 +24,12 @@ router.get('/', (request, response) => {
           const darkSkyApiKey = process.env.DARKSKY_API_KEY;
           const darkSkyUrl = `https://api.darksky.net/forecast/${darkSkyApiKey}/${latAndLongGoogleResults}?exclude=minutely,flags&units=us`;
           fetch(darkSkyUrl, { method: 'GET'})
-            .then((response) => {
-               return response.json();
+            .then((forecastResponse) => {
+               return forecastResponse.json();
             })
-            .then((json) => {
+            .then((forecastJson) => {
               // // RETURN CURRENT WEATHER INFO
-              response.status(200).json(new Forecast(request.query.location, json));
+              response.status(200).json(new Forecast(request.query.location, forecastJson));
             }).catch(error => console.log(error));
           // END OF DARSKY API FETCHING
           });
