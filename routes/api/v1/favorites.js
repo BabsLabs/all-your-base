@@ -82,42 +82,27 @@ router.get('/', (request, response) => {
             .then(favoriteLocations => {
               if (favoriteLocations.length) {
 
-              favoriteLocations.forEach((location, i) => {
-
-
-
-                const googleResults = getLatAndLongFromGoogle(location);
-                googleResults.then( (latAndLongGoogleResults) => {
-                // DARK SKY METHOD GOES HERE
-                  const darkSkyApiKey = process.env.DARKSKY_API_KEY;
-                  const darkSkyUrl = `https://api.darksky.net/forecast/${darkSkyApiKey}/${latAndLongGoogleResults}?exclude=minutely,flags&units=us`;
-                  fetch(darkSkyUrl, { method: 'GET'})
-                    .then((response) => {
-                       return response.json();
-                    })
-                    .then((json) => {
-                      // // RETURN CURRENT WEATHER INFO
-
-                      // ONLY RETURNS THE FIRST ONE FOR NOW. NEEDS TO BE PUSHED INTO THE FORECAST ARRAY AND THEN HAVE THAT RETUNED AS THE RESPONSE
-                      response.status(200).json(new FavoriteForecast(location, new Forecast(location, json)));
-                    }).catch(error => console.log(error));
-                  // END OF DARSKY API FETCHING
-                  });
-
-
-
-
-
-
+                const results = favoriteLocations.map( async (location) => {
+                    const forecastResults = await getForecasts(location, await getLatAndLongFromGoogle(location.location));
+                    // console.log(forecastResults);
+                    // response.status(200).send(forecastResults); // sends a single forecast
+                    return forecastResults;
               });
-              // response.status(200).json({ message: 'WOWOWOW!' });
 
-            } else {
+
+              Promise.all(results)
+                .then(data => {
+                  console.log(data);
+                  response.status(200).json(data);
+                });
+
+
+          } else {
                 response.status(200).json({ message: 'No favorites found.' });
               }
             })
             .catch(error => {
-              response.status(500).json({ error });
+              response.status(500).json(error); // Sometimes gets kicked down here and I dont know why?
             });
         } else if (!user) {
           response.status(401).json({error: 'Unauthorized!'});
@@ -127,5 +112,15 @@ router.get('/', (request, response) => {
       response.status(400).json({error: 'Bad Request! Did you send an Api Key?'});
     }
 });
+
+
+async function getForecasts(location, latAndLongGoogleResults) {
+  const darkSkyApiKey = process.env.DARKSKY_API_KEY;
+  const darkSkyUrl = `https://api.darksky.net/forecast/${darkSkyApiKey}/${latAndLongGoogleResults}?exclude=minutely,flags&units=us`;
+  let response = await fetch(darkSkyUrl);
+  let forecast = await response.json();
+  let forecastForAFav = { location: location.location, current_weather: forecast.currently };
+  return forecastForAFav; // object literal - not promise object
+}
 
 module.exports = router;
