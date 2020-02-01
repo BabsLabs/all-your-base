@@ -32,11 +32,10 @@ router.get('/', (request, response) => {
               response.status(200).json(new Forecast(request.query.location, json));
             }).catch(error => console.log(error));
           // END OF DARSKY API FETCHING
-
-        });
-      } else {
-        response.status(401).json({error: 'Unauthorized!'});
-      }
+          });
+        } else {
+          response.status(401).json({error: 'Unauthorized!'});
+        }
     }).catch((error) => {
       response.status(500).json({error: error});
     });
