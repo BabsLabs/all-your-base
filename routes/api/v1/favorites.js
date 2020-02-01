@@ -99,7 +99,7 @@ router.get('/', (request, response) => {
                       // // RETURN CURRENT WEATHER INFO
 
                       // ONLY RETURNS THE FIRST ONE FOR NOW. NEEDS TO BE PUSHED INTO THE FORECAST ARRAY AND THEN HAVE THAT RETUNED AS THE RESPONSE
-                      response.status(200).json(new FavoriteForecast(new Forecast(location, json)));
+                      response.status(200).json(new FavoriteForecast(location, new Forecast(location, json)));
                     }).catch(error => console.log(error));
                   // END OF DARSKY API FETCHING
                   });
