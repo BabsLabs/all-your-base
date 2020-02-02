@@ -1,5 +1,6 @@
 const dotenv = require('dotenv').config();
 const Forecast = require('../../../pojos/forecast');
+const getLatAndLongFromGoogle = require('../../../services/google_service');
 
 var express = require('express');
 var router = express.Router();
@@ -15,41 +16,26 @@ router.get('/', (request, response) => {
     // QUERY THE DATABASE TO CHECK FOR A USER WITH THE PASSED IN API KEY
     database('users').where('api_key', request.body.api_key).first()
       .then((user) => {
-
         if (user) {
-        // CHANGE THE BELOW FUNCTIONS TO HELPER FUNCTIONS IF REFACTORING
-        // START OF THE GOOGLE API SERVICE FUNCTION
-        const location  = request.query.location;
-        const googleApiKey = process.env.GOOGLE_API_KEY;
-
-        const googleApiUrl =`https://maps.googleapis.com/maps/api/geocode/json?address=${location}&key=${googleApiKey}`;
-        fetch(googleApiUrl, { method: 'GET'})
-          .then((response) => {
-             return response.json();
-        })
-        .then((json) => {
-          const googleGeocodeResponse = json;
-          const latAndLng = googleGeocodeResponse.results[0].geometry.location;
-          const joinedLatAndLng = `${latAndLng.lat},${latAndLng.lng}`;
-
-          // START OF DARKSKY API FETCHING
-          const latAndLngFromGoogle = joinedLatAndLng;
+        // GOOGLE HELPER METHOD TO GET THE LAT AND LONG OF THE LOCATION
+        const googleResults = getLatAndLongFromGoogle(request.query.location);
+        googleResults.then( (latAndLongGoogleResults) => {
+        // DARK SKY METHOD GOES HERE
           const darkSkyApiKey = process.env.DARKSKY_API_KEY;
-          const darkSkyUrl = `https://api.darksky.net/forecast/${darkSkyApiKey}/${latAndLngFromGoogle}?exclude=minutely,flags&units=us`;
+          const darkSkyUrl = `https://api.darksky.net/forecast/${darkSkyApiKey}/${latAndLongGoogleResults}?exclude=minutely,flags&units=us`;
           fetch(darkSkyUrl, { method: 'GET'})
-            .then((response) => {
-               return response.json();
+            .then((forecastResponse) => {
+               return forecastResponse.json();
             })
-            .then((json) => {
+            .then((forecastJson) => {
               // // RETURN CURRENT WEATHER INFO
-              response.status(200).json(new Forecast(location, json));
-            });
+              response.status(200).json(new Forecast(request.query.location, forecastJson));
+            }).catch(error => console.log(error));
           // END OF DARSKY API FETCHING
-        });
-
-      } else {
-        response.status(401).json({error: 'Unauthorized!'});
-      }
+          });
+        } else {
+          response.status(401).json({error: 'Unauthorized!'});
+        }
     }).catch((error) => {
       response.status(500).json({error: error});
     });
