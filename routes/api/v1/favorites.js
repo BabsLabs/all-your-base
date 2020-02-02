@@ -3,6 +3,7 @@ var express = require('express');
 var router = express.Router();
 
 const getLatAndLongFromGoogle = require('../../../services/google_service');
+const getForecasts = require('../../../services/darksky_service');
 const Forecast = require('../../../pojos/forecast');
 
 const environment = process.env.NODE_ENV || 'development';
@@ -110,15 +111,5 @@ router.get('/', (request, response) => {
       response.status(400).json({error: 'Bad Request! Did you send an Api Key?'});
     }
 });
-
-
-async function getForecasts(location, latAndLongGoogleResults) {
-  const darkSkyApiKey = process.env.DARKSKY_API_KEY;
-  const darkSkyUrl = `https://api.darksky.net/forecast/${darkSkyApiKey}/${latAndLongGoogleResults}?exclude=minutely,flags&units=us`;
-  let response = await fetch(darkSkyUrl);
-  let forecast = await response.json();
-  let forecastForAFav = { location: location.location, current_weather: forecast.currently };
-  return forecastForAFav; // object literal - not promise object
-}
 
 module.exports = router;
