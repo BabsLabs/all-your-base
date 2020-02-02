@@ -2,6 +2,7 @@ const dotenv = require('dotenv').config();
 const Forecast = require('../../../pojos/forecast');
 const getLatAndLongFromGoogle = require('../../../services/google_service');
 
+
 var express = require('express');
 var router = express.Router();
 
@@ -30,14 +31,14 @@ router.get('/', (request, response) => {
             .then((forecastJson) => {
               // // RETURN CURRENT WEATHER INFO
               response.status(200).json(new Forecast(request.query.location, forecastJson));
-            }).catch(error => console.log(error));
+            }).catch(error => console.log(error.message));
           // END OF DARSKY API FETCHING
           });
         } else {
           response.status(401).json({error: 'Unauthorized!'});
         }
     }).catch((error) => {
-      response.status(500).json({error: error});
+      response.status(500).json({error: error.message});
     });
   } else if ((!request.body.api_key) && (request.query.location)) {
     response.status(400).json({error: 'Bad Request! Did you send in an Api Key?'});
