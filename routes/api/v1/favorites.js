@@ -4,7 +4,6 @@ var router = express.Router();
 
 const getLatAndLongFromGoogle = require('../../../services/google_service');
 const Forecast = require('../../../pojos/forecast');
-const FavoriteForecast = require('../../../pojos/favorite_forecast');
 
 const environment = process.env.NODE_ENV || 'development';
 const configuration = require('../../../knexfile')[environment];
@@ -27,7 +26,7 @@ router.post('/', (request, response) => {
               response.status(201).json({ "message": `${request.body.location} has been added to your favorites` });
             })
             .catch(error => {
-              response.status(500).json({ error });
+              response.status(500).json({ error: `There was the following error: ${error.message}` });
             });
 
 
@@ -89,7 +88,6 @@ router.get('/', (request, response) => {
 
                 Promise.all(results)
                   .then(data => {
-                    console.log(data);
                     response.status(200).json(data);
                   });
 
@@ -98,12 +96,16 @@ router.get('/', (request, response) => {
               }
             })
             .catch(error => {
-              response.status(500).json(error); // Sometimes gets kicked down here and I dont know why?
+              console.log(error.message)
+              response.status(500).json({error: `There was the following error: ${error.message}`});
             });
         } else if (!user) {
           response.status(401).json({error: 'Unauthorized!'});
         }
-      }).catch(error => console.log(error));
+      }).catch(error => {
+        console.log(error.message);
+        response.status(500).json({error: `There was the following error: ${error.message}`});
+      });
     } else {
       response.status(400).json({error: 'Bad Request! Did you send an Api Key?'});
     }
