@@ -222,7 +222,7 @@ knex seed:run --env test
 Keep environment variables secure by using dotenv. Make a `.env` file il your root directory and put your environment variables inside. See more information about using the dotenv Node package at https://www.npmjs.com/package/dotenv.
 
 ### Required Environment Variables
-Environment variables and required API keys/tokens (in Figaro format) :
+Environment variables and required API keys/tokens:
 1. Google Geocode API key defined as `GOOGLE_API_KEY`
 1. DarkSky API key defined as `DARKSKY_API_KEY`
 
