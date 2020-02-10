@@ -194,25 +194,24 @@ The following Node packages are used in this project:
 ### Database Setup
 
 1. Install necessary dependencies with `npm install`
-1. Set up your local development database with the following commands - replacing the `PUT_DATABASE_NAME_HERE` with your desired database name:
+2. Set up your local development database with the following commands - replacing the `PUT_DATABASE_NAME_HERE` with your desired database name:
 ```
 psql
 CREATE DATABASE PUT_DATABASE_NAME_HERE_dev;
 \q
 ```
-
-1. Set up your local test database with the following commands - replacing the `PUT_DATABASE_NAME_HERE` with your desired database name:
+3. Set up your local test database with the following commands - replacing the `PUT_DATABASE_NAME_HERE` with your desired database name:
 ```
 sql
 CREATE DATABASE PUT_DATABASE_NAME_HERE_test;
 \q
 ```
-1. Run Migrations using:
+4. Run Migrations using:
 ```
 knex migrate:latest`
 knex migrate:latest` --env test
 ```
-1. Seed the database with: 
+5. Seed the database with: 
 ```
 knex seed:run
 knex seed:run --env test
